@@ -1,0 +1,16 @@
+{
+    "keys": {
+        "AMN-KEY-HERMES-12345": {
+            "owner": "artem",
+            "max_agents": 1,
+            "registered_agents": [],
+            "active": true
+        },
+        "AMN-KEY-TEST-UNLIMITED": {
+            "owner": "artem_test",
+            "max_agents": 10,
+            "registered_agents": [],
+            "active": true
+        }
+    }
+}

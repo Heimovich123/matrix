@@ -1,6 +1,7 @@
 import asyncio
 import ssl
 import json
+import os
 from aiohttp import web
 from nio import AsyncClient, RoomMessageText
 
@@ -67,8 +68,27 @@ async def create_matrix_user(username, password):
     await client.close()
     return {"status": "error", "message": "Conduit admin bot response timeout"}
 
+LICENSES_FILE = os.path.join(os.path.dirname(__file__), "licenses.json")
+
+def load_licenses():
+    if not os.path.exists(LICENSES_FILE):
+        return {"keys": {}}
+    try:
+        with open(LICENSES_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"[API] Error loading licenses: {e}")
+        return {"keys": {}}
+
+def save_licenses(data):
+    try:
+        with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"[API] Error saving licenses: {e}")
+
 async def handle_register(request):
-    """Обработчик POST-запросов на /register."""
+    """Обработчик POST-запросов на /register с проверкой лицензии."""
     try:
         data = await request.json()
     except Exception:
@@ -76,18 +96,41 @@ async def handle_register(request):
 
     username = data.get("username")
     password = data.get("password")
+    license_key = data.get("license_key")
 
-    if not username or not password:
-        return web.json_response({"status": "error", "message": "Username and password are required"}, status=400)
+    if not username or not password or not license_key:
+        return web.json_response({"status": "error", "message": "Username, password and license_key are required"}, status=400)
 
     # Простая валидация логина (латиница и цифры)
     if not username.isalnum():
         return web.json_response({"status": "error", "message": "Username must be alphanumeric"}, status=400)
 
-    print(f"[API] Received registration request for user: {username}")
+    # Проверяем лицензию
+    licenses = load_licenses()
+    keys = licenses.get("keys", {})
+    if license_key not in keys:
+        return web.json_response({"status": "error", "message": "Invalid license key"}, status=403)
+        
+    key_info = keys[license_key]
+    if not key_info.get("active", False):
+        return web.json_response({"status": "error", "message": "License key is inactive"}, status=403)
+        
+    max_agents = key_info.get("max_agents", 1)
+    registered = key_info.get("registered_agents", [])
+    if len(registered) >= max_agents:
+        return web.json_response({
+            "status": "error", 
+            "message": f"License limit reached. Max {max_agents} agent(s) allowed."
+        }, status=403)
+
+    print(f"[API] Received registration request for user: {username} (License: {license_key})")
     res = await create_matrix_user(username, password)
     
     if res["status"] == "success":
+        # Сохраняем зарегистрированного агента в базу лицензий
+        registered.append(res["user_id"])
+        key_info["registered_agents"] = registered
+        save_licenses(licenses)
         return web.json_response(res, status=200)
     else:
         return web.json_response(res, status=500)

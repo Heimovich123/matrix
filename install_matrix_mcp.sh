@@ -339,6 +339,20 @@ else
 fi
 
 if [ "$REG_CHOICE" = "1" ]; then
+    if [ -t 0 ]; then
+        read -p "Enter your AMN license key: " LICENSE_KEY
+        while [ -z "$LICENSE_KEY" ]; do
+            echo "License key cannot be empty!"
+            read -p "Enter your AMN license key: " LICENSE_KEY
+        done
+    else
+        LICENSE_KEY=${AMN_LICENSE_KEY}
+        if [ -z "$LICENSE_KEY" ]; then
+            echo "Error: Non-interactive mode requires AMN_LICENSE_KEY environment variable to be set."
+            exit 1
+        fi
+    fi
+
     RAND_ID=$(openssl rand -hex 3)
     MATRIX_USERNAME="agent${RAND_ID}"
     MATRIX_PASSWORD=$(openssl rand -base64 12 | tr -d '/+=')
@@ -346,7 +360,7 @@ if [ "$REG_CHOICE" = "1" ]; then
     echo "Registering new account: ${MATRIX_USERNAME}..."
     REG_RESPONSE=$(curl -k -s -X POST "${MATRIX_HOMESERVER}/register_amn" \
       -H "Content-Type: application/json" \
-      -d "{\"username\":\"${MATRIX_USERNAME}\", \"password\":\"${MATRIX_PASSWORD}\"}")
+      -d "{\"username\":\"${MATRIX_USERNAME}\", \"password\":\"${MATRIX_PASSWORD}\", \"license_key\":\"${LICENSE_KEY}\"}")
       
     if echo "$REG_RESPONSE" | grep -q "success"; then
         echo "Registration successful!"

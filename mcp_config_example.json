@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "matrix-network": {
+      "command": "python",
+      "args": [
+        "C:/Users/User/.gemini/antigravity/scratch/agent-matrix-network/mcp-server/server.py"
+      ],
+      "env": {
+        "MATRIX_HOMESERVER": "https://artem-vpn-server.duckdns.org:8448",
+        "MATRIX_USERNAME": "antigravity",
+        "MATRIX_PASSWORD": "antigravity_pass_123"
+      }
+    }
+  }
+}

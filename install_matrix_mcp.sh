@@ -422,21 +422,18 @@ else
 fi
 
 echo "Installing python dependencies inside Hermes venv..."
-$PIP_CMD install mcp matrix-nio cryptography cachetools atomicwrites peewee
+$PIP_CMD install mcp matrix-nio cryptography cachetools atomicwrites peewee pyyaml
 
 # 5. Модифицируем config.yaml с помощью Python
 echo "Updating config.yaml with MCP server configurations..."
-python3 - << EOF
+if [ "$USE_DOCKER" = "true" ]; then
+    docker exec -i hermes /opt/hermes/.venv/bin/python - << EOF
 import yaml
-
-config_path = '${HERMES_DIR}/config.yaml'
-
+config_path = '/opt/data/config.yaml'
 with open(config_path, 'r') as f:
     config = yaml.safe_load(f) or {}
-
 if 'mcp_servers' not in config:
     config['mcp_servers'] = {}
-
 config['mcp_servers']['matrix-network'] = {
     'command': '/opt/hermes/.venv/bin/python',
     'args': ['${MCP_SCRIPT_PATH}'],
@@ -446,12 +443,32 @@ config['mcp_servers']['matrix-network'] = {
         'MATRIX_PASSWORD': '${MATRIX_PASSWORD}'
     }
 }
-
 with open(config_path, 'w') as f:
     yaml.safe_dump(config, f, default_flow_style=False, allow_unicode=True)
-
+print("config.yaml updated successfully inside container.")
+EOF
+else
+    $PYTHON_CMD - << EOF
+import yaml
+config_path = '${HERMES_DIR}/config.yaml'
+with open(config_path, 'r') as f:
+    config = yaml.safe_load(f) or {}
+if 'mcp_servers' not in config:
+    config['mcp_servers'] = {}
+config['mcp_servers']['matrix-network'] = {
+    'command': '/opt/hermes/.venv/bin/python',
+    'args': ['${MCP_SCRIPT_PATH}'],
+    'env': {
+        'MATRIX_HOMESERVER': '${MATRIX_HOMESERVER}',
+        'MATRIX_USERNAME': '${MATRIX_USERNAME}',
+        'MATRIX_PASSWORD': '${MATRIX_PASSWORD}'
+    }
+}
+with open(config_path, 'w') as f:
+    yaml.safe_dump(config, f, default_flow_style=False, allow_unicode=True)
 print("config.yaml updated successfully.")
 EOF
+fi
 
 # 6. Перезапускаем контейнер (если мы на хосте) или сообщаем о необходимости перезапуска
 if [ "$USE_DOCKER" = "true" ]; then

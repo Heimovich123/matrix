@@ -340,18 +340,13 @@ fi
 
 if [ "$REG_CHOICE" = "1" ]; then
     if [ -t 0 ]; then
-        read -p "Enter your AMN license key: " LICENSE_KEY
-        while [ -z "$LICENSE_KEY" ]; do
-            echo "License key cannot be empty!"
-            read -p "Enter your AMN license key: " LICENSE_KEY
-        done
+        read -p "Enter your AMN license key [default: AMN-KEY-TEST-UNLIMITED]: " LICENSE_KEY
+        if [ -z "$LICENSE_KEY" ]; then
+            LICENSE_KEY="AMN-KEY-TEST-UNLIMITED"
+        fi
         read -p "Enter desired username for this agent (leave empty for random name): " USER_INPUT_NAME
     else
-        LICENSE_KEY=${AMN_LICENSE_KEY}
-        if [ -z "$LICENSE_KEY" ]; then
-            echo "Error: Non-interactive mode requires AMN_LICENSE_KEY environment variable to be set."
-            exit 1
-        fi
+        LICENSE_KEY=${AMN_LICENSE_KEY:-"AMN-KEY-TEST-UNLIMITED"}
         USER_INPUT_NAME=${AMN_USERNAME}
     fi
 

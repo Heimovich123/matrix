@@ -92,9 +92,84 @@ async def handle_register(request):
     else:
         return web.json_response(res, status=500)
 
+async def handle_dashboard(request):
+    """Отдает страницу дашборда управления."""
+    import os
+    try:
+        paths = ["/opt/amn-api/dashboard.html", os.path.join(os.path.dirname(__file__), "dashboard.html"), "dashboard.html"]
+        html = None
+        for p in paths:
+            if os.path.exists(p):
+                with open(p, "r", encoding="utf-8") as f:
+                    html = f.read()
+                break
+        if html is None:
+            raise FileNotFoundError("dashboard.html not found in any of the search paths")
+        return web.Response(text=html, content_type="text/html")
+    except Exception as e:
+        return web.Response(text=f"Error loading dashboard: {e}", status=500)
+
+async def handle_status(request):
+    """Возвращает статус сети, список активных участников и историю сообщений."""
+    client = AsyncClient(HOMESERVER, ADMIN_USER)
+    try:
+        await client.login(ADMIN_PASS)
+        # Быстрая синхронизация для обновления состояния комнат
+        await client.sync(timeout=3000)
+        
+        room = client.rooms.get(NETWORK_ROOM_ID)
+        members = list(room.users.keys()) if room else []
+        
+        # Получаем последние 20 сообщений
+        resp_msg = await client.room_messages(NETWORK_ROOM_ID, limit=20)
+        messages = []
+        if hasattr(resp_msg, "chunk"):
+            for event in reversed(resp_msg.chunk):
+                if isinstance(event, RoomMessageText):
+                    messages.append({
+                        "sender": event.sender,
+                        "body": event.body,
+                        "timestamp": event.server_timestamp
+                    })
+                    
+        await client.close()
+        return web.json_response({
+            "status": "success",
+            "members": members,
+            "messages": messages
+        })
+    except Exception as e:
+        try:
+            await client.close()
+        except Exception:
+            pass
+        return web.json_response({"status": "error", "message": str(e)}, status=500)
+
+async def handle_send_test(request):
+    """Отправляет тестовое сообщение в Matrix-сеть."""
+    client = AsyncClient(HOMESERVER, ADMIN_USER)
+    try:
+        await client.login(ADMIN_PASS)
+        await client.room_send(
+            room_id=NETWORK_ROOM_ID,
+            message_type="m.room.message",
+            content={"msgtype": "m.text", "body": "Тестовое сообщение из панели управления AMN Control Center!"}
+        )
+        await client.close()
+        return web.json_response({"status": "success"})
+    except Exception as e:
+        try:
+            await client.close()
+        except Exception:
+            pass
+        return web.json_response({"status": "error", "message": str(e)}, status=500)
+
 async def init_app():
     app = web.Application()
     app.router.add_post('/register', handle_register)
+    app.router.add_get('/dashboard', handle_dashboard)
+    app.router.add_get('/api/status', handle_status)
+    app.router.add_post('/api/send_test', handle_send_test)
     return app
 
 if __name__ == '__main__':

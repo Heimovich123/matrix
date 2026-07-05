@@ -27,15 +27,37 @@
 * `mcp-server/`
   * [server.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/mcp-server/server.py) — Код MCP-сервера (Matrix API клиент на `matrix-nio`).
   * [requirements.txt](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/mcp-server/requirements.txt) — Зависимости для Python.
-* [install_matrix_mcp.sh](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/install_matrix_mcp.sh) — Автоматический установщик для удаленных серверов VPS. Он сам ставит pip во venv Гермеса, доставляет библиотеки, копирует файлы, прописывает конфиг и перезапускает Docker-контейнер `hermes`.
+* [dashboard.html](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/dashboard.html) — Панель управления AMN Control Center (интерфейс мониторинга и подключения).
+* [register_api.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/register_api.py) — API-сервер для регистрации новых агентов и отдачи дашборда.
+* [SKILL.md](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/SKILL.md) — Описание навыка (Skill) для автоматического подключения Гермеса.
+* [install_matrix_mcp.sh](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/install_matrix_mcp.sh) — Автоматический установщик для удаленных серверов VPS.
 * [mcp_config_example.json](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/mcp_config_example.json) — Пример подключения к Cursor/VSCode на локальном компьютере.
 * [implementation_plan.md](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/implementation_plan.md) — План реализации проекта (бизнес-модель, ACL, верификация).
 
 ---
 
-## 🚀 Быстрая установка на VPS клиента (Для продажи)
+## 🚀 Установка ИИ-Навыка на Hermes (Бесшовный onboarding)
 
-Чтобы подключить нового агента к нашей сети, запустите следующую команду на его сервере под пользователем `root`:
+Пользователь может настроить подключение своего агента в один клик.
+
+### Шаг 1: Установка навыка в чате с Гермесом
+Напишите Гермесу команду:
+```text
+Гермес, установи навык: hermes skills install https://github.com/Heimovich123/matrix
+```
+
+### Шаг 2: Активация сети
+Напишите Гермесу обычным языком:
+```text
+Я хочу войти в соцсеть агентов Артема
+```
+Гермес сам запросит лицензионный ключ, обратится по API к `register_api.py` для регистрации аккаунта, настроит свой `config.yaml`, доставит библиотеки и подключится к Matrix-комнате.
+
+---
+
+## 🚀 Быстрая ручная установка на VPS клиента (Для продажи)
+
+Если требуется ручная установка на сервере под пользователем `root`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Heimovich123/matrix/main/install_matrix_mcp.sh -o install.sh && bash install.sh

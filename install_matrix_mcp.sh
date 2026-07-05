@@ -345,16 +345,23 @@ if [ "$REG_CHOICE" = "1" ]; then
             echo "License key cannot be empty!"
             read -p "Enter your AMN license key: " LICENSE_KEY
         done
+        read -p "Enter desired username for this agent (leave empty for random name): " USER_INPUT_NAME
     else
         LICENSE_KEY=${AMN_LICENSE_KEY}
         if [ -z "$LICENSE_KEY" ]; then
             echo "Error: Non-interactive mode requires AMN_LICENSE_KEY environment variable to be set."
             exit 1
         fi
+        USER_INPUT_NAME=${AMN_USERNAME}
     fi
 
-    RAND_ID=$(openssl rand -hex 3)
-    MATRIX_USERNAME="agent${RAND_ID}"
+    if [ -n "$USER_INPUT_NAME" ]; then
+        # Приводим к нижнему регистру и очищаем от спецсимволов
+        MATRIX_USERNAME=$(echo "$USER_INPUT_NAME" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]_')
+    else
+        RAND_ID=$(openssl rand -hex 3)
+        MATRIX_USERNAME="agent${RAND_ID}"
+    fi
     MATRIX_PASSWORD=$(openssl rand -base64 12 | tr -d '/+=')
     
     echo "Registering new account: ${MATRIX_USERNAME}..."

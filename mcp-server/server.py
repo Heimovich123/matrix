@@ -2,6 +2,7 @@ import os
 import asyncio
 import ssl
 import json
+import sys
 import threading
 import urllib.request
 from mcp.server.fastmcp import FastMCP
@@ -41,7 +42,7 @@ def send_telegram_notification(text):
     chat_id = env.get("TELEGRAM_HOME_CHANNEL") or env.get("TELEGRAM_ALLOWED_USERS")
     
     if not bot_token or not chat_id:
-        print("[Monitor] Telegram credentials not found in env.")
+        print("[Monitor] Telegram credentials not found in env.", file=sys.stderr)
         return
         
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -65,12 +66,12 @@ def send_telegram_notification(text):
         with urllib.request.urlopen(req, context=ctx) as response:
             response.read()
     except Exception as e:
-        print(f"[Monitor] Failed to send Telegram notification: {e}")
+        print(f"[Monitor] Failed to send Telegram notification: {e}", file=sys.stderr)
 
 async def matrix_monitor_loop():
     """Фоновый цикл прослушивания сообщений в Matrix."""
     if not MATRIX_USERNAME or not MATRIX_PASSWORD:
-        print("[Monitor] Matrix credentials not set. Monitor disabled.")
+        print("[Monitor] Matrix credentials not set. Monitor disabled.", file=sys.stderr)
         return
         
     username = MATRIX_USERNAME
@@ -82,18 +83,18 @@ async def matrix_monitor_loop():
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
     
-    print(f"[Monitor] Starting Matrix listener for user {username}...")
+    print(f"[Monitor] Starting Matrix listener for user {username}...", file=sys.stderr)
     client = AsyncClient(MATRIX_HOMESERVER, username)
     
     try:
         await client.login(MATRIX_PASSWORD)
         
         # 1. Первая синхронизация: получаем актуальное состояние (next_batch) и игнорируем историю
-        print("[Monitor] Performing initial sync to discard history...")
+        print("[Monitor] Performing initial sync to discard history...", file=sys.stderr)
         await client.sync(timeout=5000)
         
         # 2. Бесконечный цикл синхронизации для новых сообщений
-        print("[Monitor] Monitor active. Listening for new messages...")
+        print("[Monitor] Monitor active. Listening for new messages...", file=sys.stderr)
         while True:
             response = await client.sync(timeout=30000)
             if hasattr(response, "rooms") and response.rooms.join:
@@ -101,12 +102,12 @@ async def matrix_monitor_loop():
                     for event in joined_room.timeline.events:
                         if isinstance(event, RoomMessageText):
                             if event.sender != username:
-                                print(f"[Monitor] New message from {event.sender}: {event.body}")
+                                print(f"[Monitor] New message from {event.sender}: {event.body}", file=sys.stderr)
                                 clean_sender = event.sender.split(":")[0].replace("@", "")
                                 text = f"🤖 *Matrix-Сеть*\n👤 *Агент:* `{clean_sender}`\n💬 *Сообщение:* {event.body}"
                                 send_telegram_notification(text)
     except Exception as e:
-        print(f"[Monitor] Matrix connection error in thread: {e}")
+        print(f"[Monitor] Matrix connection error in thread: {e}", file=sys.stderr)
     finally:
         await client.close()
 
@@ -128,7 +129,7 @@ def start_background_monitor():
         except (ImportError, IOError, OSError):
             # В Windows fcntl нет (для тестов), на Linux/Docker он сработает.
             # Если захватить лок не удалось, выходим
-            print("[Monitor] Already running in another process or lock failed. Aborting.")
+            print("[Monitor] Already running in another process or lock failed. Aborting.", file=sys.stderr)
             return
             
         loop = asyncio.new_event_loop()

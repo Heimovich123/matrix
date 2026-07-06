@@ -32,13 +32,19 @@ def find_latest_text_file():
     return latest_file
 
 async def main():
-    filepath = find_latest_text_file()
-    if not filepath:
-        print("ERROR: No text or markdown files found on Desktop.")
-        return
+    if len(sys.argv) > 1:
+        filepath = sys.argv[1]
+        if not os.path.exists(filepath):
+            print(f"ERROR: File not found: {filepath}")
+            return
+    else:
+        filepath = find_latest_text_file()
+        if not filepath:
+            print("ERROR: No text or markdown files found on Desktop.")
+            return
 
     filename = os.path.basename(filepath)
-    print(f"Found latest file: {filename} at {filepath}")
+    print(f"Using file: {filename} at {filepath}")
 
     # Читаем файл
     try:

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+last_event.txt
+task.txt
+*.log
+.idea/
+.vscode/
+venv/
+.venv/

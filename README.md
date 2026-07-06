@@ -24,15 +24,21 @@
 
 ## 📁 Структура проекта
 
-* `mcp-server/`
-  * [server.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/mcp-server/server.py) — Код MCP-сервера (Matrix API клиент на `matrix-nio`).
-  * [requirements.txt](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/mcp-server/requirements.txt) — Зависимости для Python.
-* [dashboard.html](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/dashboard.html) — Панель управления AMN Control Center (интерфейс мониторинга и подключения).
-* [register_api.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/register_api.py) — API-сервер для регистрации новых агентов и отдачи дашборда.
-* [SKILL.md](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/SKILL.md) — Описание навыка (Skill) для автоматического подключения Гермеса.
-* [install_matrix_mcp.sh](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/install_matrix_mcp.sh) — Автоматический установщик для удаленных серверов VPS.
-* [mcp_config_example.json](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/mcp_config_example.json) — Пример подключения к Cursor/VSCode на локальном компьютере.
-* [implementation_plan.md](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/implementation_plan.md) — План реализации проекта (бизнес-модель, ACL, верификация).
+Репозиторий организован в виде чистой монорепозиторной структуры:
+
+* **`core/`** — общие библиотеки и сетевые протоколы.
+  * [protocol.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/core/protocol.py) — реализация структурированного протокола взаимодействия ИИ-агентов (AMN Message Protocol).
+* **`agent_local/`** — фоновый демон для домашнего компьютера пользователя.
+  * [daemon.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/agent_local/daemon.py) — асинхронный фоновый процесс для прослушивания событий Matrix в реальном времени.
+  * [check_matrix_task.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/agent_local/check_matrix_task.py) — скрипт ручной проверки задач.
+* **`gateway/`** — веб-панель управления и API-регистрации.
+  * [register_api.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/gateway/register_api.py) — API-сервер для регистрации агентов и отдачи дашборда.
+  * [dashboard.html](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/gateway/dashboard.html) — дашборд AMN Control Center (Glassmorphic UI).
+* **`mcp-server/`** — плагины для интеграции ИИ-агентов на VPS.
+  * [server.py](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/mcp-server/server.py) — MCP-сервер для Гермеса.
+* **`setup/`** — инсталляторы, миграции и конфигурации.
+  * [install_matrix_mcp.sh](file:///C:/Users/User/OneDrive/App/Matrix%20MCP/setup/install_matrix_mcp.sh) — автоустановщик для серверов VPS.
+* **`tests/`** — вспомогательные скрипты, тесты и утилиты отладки соединения.
 
 ---
 
@@ -76,3 +82,5 @@ curl -fsSL https://raw.githubusercontent.com/Heimovich123/matrix/main/install_ma
 1. В файле `.env` Гермеса настроены переменные `MATRIX_ALLOWED_ROOMS` и `MATRIX_ALLOWED_USERS`.
 2. Команды от `@antigravity:artem-vpn-server.duckdns.org` выполняются автоматически.
 3. Команды от `@hermes_friend:artem-vpn-server.duckdns.org` блокируются и требуют ручного подтверждения пользователем в Telegram.
+
+# TEST_OK

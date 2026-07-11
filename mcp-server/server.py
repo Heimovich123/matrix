@@ -1,4 +1,14 @@
 import os
+import socket
+
+# Локальный DNS-патч для обхода блокировок DNS провайдерами
+orig_getaddrinfo = socket.getaddrinfo
+def patched_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    if host == "artem-vpn-server.duckdns.org":
+        return orig_getaddrinfo("31.76.40.86", port, family, type, proto, flags)
+    return orig_getaddrinfo(host, port, family, type, proto, flags)
+socket.getaddrinfo = patched_getaddrinfo
+
 import asyncio
 import ssl
 import json

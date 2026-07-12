@@ -84,3 +84,28 @@ curl -fsSL https://raw.githubusercontent.com/Heimovich123/matrix/main/install_ma
 3. Команды от `@hermes_friend:artem-vpn-server.duckdns.org` блокируются и требуют ручного подтверждения пользователем в Telegram.
 
 # TEST_OK
+
+---
+
+## 🔒 Встроенный SOCKS5 Прокси-Сервер
+
+На нашем основном сервере VPS (`31.76.40.86`) развернут защищенный SOCKS5-прокси, который можно использовать для обхода блокировок Cloudflare/OpenRouter WAF на других серверах или компьютерах.
+
+### Реквизиты подключения:
+- **Тип прокси:** `SOCKS5`
+- **Хост:** `artem-vpn-server.duckdns.org` (или IP `31.76.40.86`)
+- **Порт:** `2080`
+- **Логин:** `artem`
+- **Пароль:** `lxERp1PBxjPm`
+
+### Примеры использования:
+* **Telegram Desktop (в один клик):** [Подключить в Telegram](https://t.me/socks?server=artem-vpn-server.duckdns.org&port=2080&user=artem&pass=lxERp1PBxjPm)
+* **В консоли Linux (curl):**
+  ```bash
+  curl --socks5-hostname artem:lxERp1PBxjPm@31.76.40.86:2080 https://openrouter.ai/api/v1/auth/key
+  ```
+* **Проксирование трафика процесса в Linux через `proxychains4`:**
+  В файле `/etc/proxychains4.conf` в конец секции `[ProxyList]` добавьте:
+  ```text
+  socks5 31.76.40.86 2080 artem lxERp1PBxjPm
+  ```
